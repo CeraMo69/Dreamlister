@@ -86,22 +86,24 @@ class MainVC: UIViewController, UITableViewDelegate, UITableViewDataSource, NSFe
         attemptFetch()
         tableView.reloadData()
     }
-
+    
     func attemptFetch() {
-        let fetchRequest: NSFetchRequest<Item> = Item.fetchRequest()
+        let fetchRequestItem: NSFetchRequest<Item> = Item.fetchRequest()
         
         let dateSort = NSSortDescriptor(key: "created", ascending: false)
         let priceSort = NSSortDescriptor(key: "price", ascending: true)
         let titleSort = NSSortDescriptor(key: "title", ascending: true, selector:#selector(NSString.localizedCaseInsensitiveCompare(_:)) )
+        let typeSort = NSSortDescriptor(key: "toItemType.type", ascending: true)
         
         switch segment.selectedSegmentIndex {
-        case 0: fetchRequest.sortDescriptors = [dateSort]
-        case 1: fetchRequest.sortDescriptors = [priceSort]
-        case 2: fetchRequest.sortDescriptors = [titleSort]
-        default: fetchRequest.sortDescriptors = [dateSort] // Just default to date sorting in case this ever happens which is unlikely since it's default selection is set to 0 through IB.
+        case 0: fetchRequestItem.sortDescriptors = [dateSort]
+        case 1: fetchRequestItem.sortDescriptors = [priceSort]
+        case 2: fetchRequestItem.sortDescriptors = [titleSort]
+        case 3: fetchRequestItem.sortDescriptors = [typeSort]
+        default: fetchRequestItem.sortDescriptors = [dateSort] // Just default to date sorting in case this ever happens which is unlikely since it's default selection is set to 0 through IB.
         }
         
-        let controller = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+        let controller = NSFetchedResultsController(fetchRequest: fetchRequestItem, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
         
         controller.delegate = self
         
@@ -148,7 +150,7 @@ class MainVC: UIViewController, UITableViewDelegate, UITableViewDataSource, NSFe
         }
     }
     
-    // Check image data object cycle count.
+//     Check image data object cycle count.
 //    override func viewWillAppear(_ animated: Bool) {
 //        let fetchRequest: NSFetchRequest = Image.fetchRequest()
 //        

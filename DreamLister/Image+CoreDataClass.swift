@@ -13,3 +13,6 @@ import CoreData
 public class Image: NSManagedObject {
 
 }
+
+
+

@@ -17,11 +17,11 @@ class ItemDetailsVC: UIViewController, UIPickerViewDelegate, UIPickerViewDataSou
     @IBOutlet weak var priceField: CustomTextField!
     @IBOutlet weak var detailsField: CustomTextField!
     
-    var pickerRows = [Store]()
+    var stores = [Store]()
+    var itemtypes = [ItemType]()
     var itemToEdit: Item?
     var imagePicker = UIImagePickerController()
     var newImage = false
-    var storesCount: Int!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,12 +37,18 @@ class ItemDetailsVC: UIViewController, UIPickerViewDelegate, UIPickerViewDataSou
         
         /* Manages only executing createStores if the context.count ( count )
          regarding Store(s) is equal to 0. */
-        let count = fetchStoreCount()
-        if count == 0 {
+        let countStores = fetchStoreCount()
+        let countItemTypes = fetchItemTypeCount()
+        
+        if countStores == 0 {
             createStores()
+        }
+        if countItemTypes == 0 {
+            createItemTypes()
         }
         
         fetchStores()
+        fetchItemTypes()
         
         if itemToEdit != nil {
             loadItemData()
@@ -51,15 +57,23 @@ class ItemDetailsVC: UIViewController, UIPickerViewDelegate, UIPickerViewDataSou
     }
 
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 1
+        return 2
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return pickerRows.count
+        switch component {
+        case 0: return stores.count
+        case 1: return itemtypes.count
+        default: return 6
+        }
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return pickerRows[row].name
+        switch component {
+        case 0: return stores[row].name
+        case 1: return itemtypes[row].type
+        default: return "Error \(row)"
+        }
     }
     
     func createStores() {
@@ -80,12 +94,41 @@ class ItemDetailsVC: UIViewController, UIPickerViewDelegate, UIPickerViewDataSou
         ad.saveContext()
     }
     
+    func createItemTypes() {
+        
+        let itemType1 = ItemType(context: context)
+        itemType1.type = "Car"
+        let itemType2 = ItemType(context: context)
+        itemType2.type = "Electronics"
+        let itemType3 = ItemType(context: context)
+        itemType3.type = "Course"
+        let itemType4 = ItemType(context: context)
+        itemType4.type = "Devslopes"
+        let itemType5 = ItemType(context: context)
+        itemType5.type = "Nature"
+        let itemType6 = ItemType(context: context)
+        itemType6.type = "Goals"
+        
+        ad.saveContext()
+    }
+    
     func fetchStores() {
         let fetchRequest: NSFetchRequest<Store> = Store.fetchRequest()
         
         do {
-            try pickerRows = context.fetch(fetchRequest)
-            pickerView.reloadAllComponents()
+            try stores = context.fetch(fetchRequest)
+            pickerView.reloadComponent(0)
+        } catch let err as NSError {
+            print(err.description)
+        }
+    }
+    
+    func fetchItemTypes() {
+        let fetchRequest: NSFetchRequest<ItemType> = ItemType.fetchRequest()
+        
+        do {
+            try itemtypes = context.fetch(fetchRequest)
+            pickerView.reloadComponent(1)
         } catch let err as NSError {
             print(err.description)
         }
@@ -97,6 +140,19 @@ class ItemDetailsVC: UIViewController, UIPickerViewDelegate, UIPickerViewDataSou
         do {
             let count = try context.count(for: fetchRequest)
             print("Current Store Data Count : \(count)")
+            return count
+        } catch let err as NSError {
+            print(err.description)
+            return 0
+        }
+    }
+    
+    func fetchItemTypeCount() -> Int {
+        let fetchRequest: NSFetchRequest<ItemType> = ItemType.fetchRequest()
+        
+        do {
+            let count = try context.count(for: fetchRequest)
+            print("Current Item Type Data Count : \(count)")
             return count
         } catch let err as NSError {
             print(err.description)
@@ -136,7 +192,8 @@ class ItemDetailsVC: UIViewController, UIPickerViewDelegate, UIPickerViewDataSou
         picture.image = thumbImg.image
         item.toImage = picture
 
-        item.toStore = pickerRows[pickerView.selectedRow(inComponent: 0)]
+        item.toStore = stores[pickerView.selectedRow(inComponent: 0)]
+        item.toItemType = itemtypes[pickerView.selectedRow(inComponent: 1)]
         
         ad.saveContext()
         
@@ -153,9 +210,18 @@ class ItemDetailsVC: UIViewController, UIPickerViewDelegate, UIPickerViewDataSou
             thumbImg.image = item.toImage?.image as? UIImage
             
             if let store = item.toStore {
-                for (index, eachStore) in pickerRows.enumerated() {
+                for (index, eachStore) in stores.enumerated() {
                     if eachStore.name == store.name {
                         pickerView.selectRow(index, inComponent: 0, animated: false)
+                        break
+                    }
+                }
+                
+            }
+            if let type = item.toItemType {
+                for (index, eachType) in itemtypes.enumerated() {
+                    if eachType.type == type.type {
+                        pickerView.selectRow(index, inComponent: 1, animated: false)
                         break
                     }
                 }
